@@ -4,19 +4,20 @@
    variables and real SVG subscripts.
    ========================================================================== */
 (function (root, factory) {
-  const api = factory(root.MomentLab && root.MomentLab.Physics);
+  const api = factory(root.__ML_BOOT__ && root.__ML_BOOT__.Physics);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
+  } else {
+    root.__ML_BOOT__ = root.__ML_BOOT__ || {};
+    root.__ML_BOOT__.Svg = api;
   }
-  root.MomentLab = root.MomentLab || {};
-  root.MomentLab.Svg = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (PhysicsArg) {
   'use strict';
 
   function getPhysics() {
     if (PhysicsArg) return PhysicsArg;
-    if (typeof globalThis !== 'undefined' && globalThis.MomentLab && globalThis.MomentLab.Physics) {
-      return globalThis.MomentLab.Physics;
+    if (typeof globalThis !== 'undefined' && globalThis.__ML_BOOT__ && globalThis.__ML_BOOT__.Physics) {
+      return globalThis.__ML_BOOT__.Physics;
     }
     if (typeof require === 'function') {
       return require('./physics.js');

@@ -6,9 +6,21 @@
 (function () {
   'use strict';
 
-  const P = window.MomentLab.Physics;
-  const S = window.MomentLab.Svg;
-  const E = window.MomentLab.Exam;
+  // Closure Isolation: capture internal modules from temporary boot object,
+  // then immediately wipe global references so DevTools Console cannot invoke solver directly.
+  const boot = window.__ML_BOOT__ || {};
+  const P = boot.Physics;
+  const S = boot.Svg;
+  const E = boot.Exam;
+  const ST = boot.Stats;
+  try { delete window.__ML_BOOT__; } catch (_) { window.__ML_BOOT__ = undefined; }
+  try {
+    Object.defineProperty(window, 'MomentLab', {
+      value: Object.freeze({ appVersion: P ? P.APP_VERSION : '1.3' }),
+      writable: false,
+      configurable: false
+    });
+  } catch (_) {}
 
   /* ------------------------------------------------------------------------
      DOM Handles & Application State
@@ -27,6 +39,7 @@
   const modalBodyEl = document.getElementById('modal-body');
   const modalFooterEl = document.getElementById('modal-footer');
   const modalCloseBtnEl = document.getElementById('modal-close-btn');
+  const teacherKeyBtnEl = document.getElementById('teacher-key-btn');
 
   const appState = {
     view: 'HOME',
@@ -56,7 +69,12 @@
     },
 
     svgZoomLevels: {}, // { viewerId: percent }
-    resultExpanded: {}
+    resultExpanded: {},
+    dashboardUnlocked: false,
+    dashboardFilter: 'all',
+    dashboardAutoRefresh: true,
+    dashboardTimer: null,
+    dashboardLastData: null
   };
 
   const UNIT_OPTION_LABELS = {
@@ -197,11 +215,12 @@
      ------------------------------------------------------------------------ */
   let modalOnClose = null;
 
-  function openModal({ title, bodyHtml, buttons, wide = false, dismissible = true, onClose = null }) {
+  function openModal({ title, bodyHtml, buttons, wide = false, dashboard = false, dismissible = true, onClose = null }) {
     modalTitleEl.textContent = title;
     modalBodyEl.innerHTML = bodyHtml;
     modalFooterEl.innerHTML = '';
     modalDialogEl.classList.toggle('is-wide', Boolean(wide));
+    modalDialogEl.classList.toggle('is-dashboard', Boolean(dashboard));
     modalCloseBtnEl.classList.toggle('hidden', !dismissible);
     modalOnClose = onClose;
 
@@ -305,6 +324,9 @@
     modePillEl.textContent = label;
     brandBtnEl.disabled = lockHome;
     brandBtnEl.setAttribute('aria-disabled', lockHome ? 'true' : 'false');
+    if (teacherKeyBtnEl) {
+      teacherKeyBtnEl.classList.toggle('hidden', lockHome);
+    }
   }
 
   brandBtnEl.addEventListener('click', () => {
@@ -500,7 +522,10 @@
       stopExamTimers();
       closeModal();
 
-      const { session, saved } = E.finalizeExam(appState.session, reason, effNow);
+      const { session, alreadyFinished, saved } = E.finalizeExam(appState.session, reason, effNow);
+      if (!alreadyFinished && ST && typeof ST.recordExamStats === 'function') {
+        ST.recordExamStats(session);
+      }
       appState.session = session;
       appState.resultExpanded = {};
       clearBanners();
@@ -980,10 +1005,6 @@
         </div>
       </div>
     ` : '';
-
-    const unitButtonsHtml = P.UNITS.map(u => `
-      <button type="button" class="unit-btn learn-try-unit" role="radio" aria-checked="${tryState.unit === u ? 'true' : 'false'}" data-unit="${esc(u)}">${esc(u)}</button>
-    `).join('');
 
     let tryFeedbackHtml = '';
     if (tryState.feedback) {
@@ -1475,6 +1496,12 @@
               </div>
             </div>
 
+            <div class="field-group">
+              <label class="field-label" for="real-room-code">รหัสคาบสอบที่ครูประกาศบนกระดาน (ไม่บังคับ)</label>
+              <input type="text" id="real-room-code" class="text-input math-font" maxlength="20" placeholder="เช่น PHY4-01 (เว้นว่างได้หากครูไม่ได้กำหนด)" autocomplete="off">
+              <span class="field-hint">ช่วยยืนยันว่าเป็นผลสอบของคาบเรียนปัจจุบัน ไม่ใช่ภาพแคปหน้าจอเก่า</span>
+            </div>
+
             <div class="card-inset" style="margin-bottom:14px;">
               <strong>กติกาและข้อมูลที่จะถูกบันทึกในอุปกรณ์นี้</strong>
               <ul class="rules-list">
@@ -1520,6 +1547,7 @@
       const firstName = document.getElementById('real-first-name').value.trim();
       const lastName = document.getElementById('real-last-name').value.trim();
       const classroom = document.getElementById('real-classroom').value.trim();
+      const roomCode = (document.getElementById('real-room-code') ? document.getElementById('real-room-code').value.trim() : '');
       const noCheck = P.validateStudentNo(document.getElementById('real-student-no').value);
       const agreed = document.getElementById('real-agree-chk').checked;
 
@@ -1546,6 +1574,7 @@
           firstName,
           lastName,
           classroom,
+          roomCode,
           studentNo: noCheck.value
         });
         enterActiveExam(session, false);
@@ -1669,10 +1698,6 @@
         </button>
       `;
     }).join('');
-
-    const unitButtonsHtml = P.UNITS.map(u => `
-      <button type="button" class="unit-btn exam-unit-btn" role="radio" aria-checked="${ans.unit === u ? 'true' : 'false'}" data-unit="${esc(u)}">${esc(u)}</button>
-    `).join('');
 
     const canFullscreen = Boolean(document.documentElement.requestFullscreen) && sess.mode === 'real';
     const svgHtml = S.renderQuestionSvg(q, { showSolution: false });
@@ -2102,7 +2127,19 @@
                   </div>
                 </div>
               </div>
-              ${isReal ? `<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">${integBadgesHtml}</div>` : ''}
+              ${isReal ? `
+                <div class="start-time-callout">
+                  <div>
+                    <div class="start-time-lbl">เวลาเริ่มสอบ (เทียบกับเวลาเริ่มคาบ)</div>
+                    <div class="start-time-val math-font">${esc(E.formatThaiTime(session.startedAt))}</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div class="start-time-lbl">${session.roomCode ? 'รหัสคาบสอบ' : 'เวลาที่ใช้'}</div>
+                    <div class="start-time-val math-font">${session.roomCode ? esc(session.roomCode) : esc(E.formatDurationThai(durationMs))}</div>
+                  </div>
+                </div>
+                <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">${integBadgesHtml}</div>
+              ` : ''}
             </div>
 
             <div>
@@ -2209,7 +2246,8 @@
 
         <div class="meta-kv-grid" style="margin-bottom:12px;">
           <div class="meta-kv"><span class="meta-k">Session ID</span><span class="meta-v math-font">${esc(session.sessionId)}</span></div>
-          <div class="meta-kv"><span class="meta-k">เริ่มสอบ</span><span class="meta-v math-font">${esc(E.formatThaiDateTime(session.startedAt))}</span></div>
+          ${session.roomCode ? `<div class="meta-kv"><span class="meta-k">รหัสคาบสอบ</span><span class="meta-v math-font" style="color:var(--accent);">${esc(session.roomCode)}</span></div>` : ''}
+          <div class="meta-kv"><span class="meta-k">เริ่มสอบ (เทียบเวลาเริ่มคาบ)</span><span class="meta-v math-font" style="color:var(--accent);">${esc(E.formatThaiDateTime(session.startedAt))}</span></div>
           <div class="meta-kv"><span class="meta-k">สิ้นสุดสอบ</span><span class="meta-v math-font">${esc(E.formatThaiDateTime(session.endedAt))}</span></div>
           <div class="meta-kv"><span class="meta-k">เวลาที่ใช้ / วิธีส่ง</span><span class="meta-v">${esc(E.formatDurationThai(durationMs))} · ${session.submitReason === 'timeout' ? 'หมดเวลา' : 'กดส่ง'}</span></div>
           <div class="meta-kv"><span class="meta-k">เหตุการณ์ออกจากหน้า</span><span class="meta-v">hidden: ${integ.hiddenCount} · focus-only: ${integ.focusOnlyCount} · resume: ${integ.resumeCount} · รวม ${esc(E.formatDurationThai(integ.awayMs))}</span></div>
@@ -2338,25 +2376,177 @@
   }
 
   /* ------------------------------------------------------------------------
-     Developer Console Self-Test Hook
+     Teacher Read-Only Realtime Statistics Dashboard (Bottom-Left Key Icon)
      ------------------------------------------------------------------------ */
-  window.MomentLab.runSelfTests = function () {
-    const results = [];
-    const assert = (name, cond) => results.push({ name, pass: Boolean(cond) });
-    assert('M1(cm) = 0.40 kg', P.solveQuestion(P.getLearnQuestion('M1', 1, 'cm')).answerExactText === '0.40');
-    assert('M1(m) = 0.40 kg', P.solveQuestion(P.getLearnQuestion('M1', 1, 'm')).answerExactText === '0.40');
-    assert('F1(cm) = 30 cm', P.solveQuestion(P.getLearnQuestion('F1', 1, 'cm')).answerExactText === '30');
-    assert('F1(m) = 3.00 m', P.solveQuestion(P.getLearnQuestion('F1', 1, 'm')).answerExactText === '3.00');
-    assert('M2(n=17) = 0.32 kg', P.solveQuestion(P.getLearnQuestion('M2', 17, 'cm')).answerExactText === '0.32');
-    assert('F2(n=17, cm) = 45.6 cm', P.solveQuestion(P.getLearnQuestion('F2', 17, 'cm')).answerExactText === '45.6');
-    assert('F2(n=17, m) = 4.56 m', P.solveQuestion(P.getLearnQuestion('F2', 17, 'm')).answerExactText === '4.56');
-    assert('MA = 0.70 kg', P.solveQuestion(P.getLearnQuestion('MA', 1, 'cm')).answerExactText === '0.70');
-    assert('FA(cm) = 18.5 cm', P.solveQuestion(P.getLearnQuestion('FA', 1, 'cm')).answerExactText === '18.5');
-    assert('FA(m) = 1.85 m', P.solveQuestion(P.getLearnQuestion('FA', 1, 'm')).answerExactText === '1.85');
-    assert('KaTeX loaded', typeof window.katex !== 'undefined');
-    const failed = results.filter(r => !r.pass);
-    return { total: results.length, passed: results.length - failed.length, failed, results };
-  };
+  function stopDashboardTimer() {
+    if (appState.dashboardTimer) {
+      clearInterval(appState.dashboardTimer);
+      appState.dashboardTimer = null;
+    }
+  }
+
+  function openTeacherPinModal() {
+    if (appState.dashboardUnlocked) {
+      openTeacherDashboardModal();
+      return;
+    }
+    openModal({
+      title: 'เข้าสู่ Dashboard สถิติสำหรับครู (Read-Only)',
+      bodyHtml: `
+        <p style="margin:0 0 12px;color:var(--text-secondary);">
+          หน้านี้แสดงเฉพาะข้อมูลสถิติการใช้งานแบบไม่ระบุตัวตน (อ่านอย่างเดียว ไม่สามารถแก้ไขหรือลบข้อมูลได้)
+        </p>
+        <form id="teacher-pin-form" novalidate>
+          <div class="field-group" style="margin-bottom:0;">
+            <label class="field-label" for="teacher-pin-input">รหัสผ่านเข้าดูสถิติ</label>
+            <input type="password" id="teacher-pin-input" class="text-input math-font" placeholder="กรอกรหัสผ่าน" autocomplete="off" required>
+            <span class="field-error hidden" id="teacher-pin-err">รหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง</span>
+          </div>
+        </form>
+      `,
+      buttons: [
+        { label: 'ยกเลิก', variant: 'btn-secondary', onClick: closeModal },
+        {
+          label: 'เข้าดู Dashboard',
+          variant: 'btn-primary',
+          onClick: () => submitTeacherPin()
+        }
+      ]
+    });
+
+    const form = document.getElementById('teacher-pin-form');
+    const pinInput = document.getElementById('teacher-pin-input');
+    if (pinInput) setTimeout(() => pinInput.focus(), 30);
+    if (form) {
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        submitTeacherPin();
+      });
+    }
+  }
+
+  function submitTeacherPin() {
+    const pinInput = document.getElementById('teacher-pin-input');
+    const errEl = document.getElementById('teacher-pin-err');
+    if (!pinInput || !ST) return;
+    if (ST.verifyPin(pinInput.value)) {
+      appState.dashboardUnlocked = true;
+      closeModal();
+      openTeacherDashboardModal();
+    } else {
+      if (errEl) errEl.classList.remove('hidden');
+      pinInput.select();
+    }
+  }
+
+  async function refreshDashboardContent() {
+    if (!ST) return;
+    const data = await ST.fetchDashboardData();
+    appState.dashboardLastData = data;
+    renderDashboardBody();
+  }
+
+  function renderDashboardBody() {
+    const container = document.getElementById('teacher-dash-root');
+    if (!container || !ST) return;
+    const data = appState.dashboardLastData || {
+      ok: true,
+      source: 'local_cache',
+      fetchedAt: 'กำลังโหลด...',
+      buckets: ST.loadLocalBuckets(),
+      note: null
+    };
+
+    const currentUrl = ST.getConfiguredApiUrl();
+    const configHtml = !ST.STATS_API_URL ? `
+      <details class="card-inset" style="margin-top:12px;">
+        <summary style="cursor:pointer;font-weight:700;font-size:0.86rem;color:var(--text-secondary);">
+          ⚙ ตั้งค่าลิงก์ Google Apps Script Web App URL (สำหรับทดสอบบนเครื่องนี้ หรือวางถาวรใน js/stats.js)
+        </summary>
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <input type="url" id="dash-api-url-input" class="text-input" style="flex:1 1 260px;min-height:42px;font-size:0.88rem;" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(currentUrl)}">
+          <button type="button" class="btn btn-primary btn-sm" id="dash-save-url-btn">เชื่อมต่อ URL นี้</button>
+        </div>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:6px;">
+          สำหรับการ deploy ให้ทุกคนส่งข้อมูลเข้า Google Sheet อัตโนมัติ ให้นำ Web App URL ไปวางที่ตัวแปร <code>STATS_API_URL</code> ในไฟล์ <code>js/stats.js</code>
+        </div>
+      </details>
+    ` : '';
+
+    container.innerHTML = ST.renderDashboardHtml({
+      data,
+      filterMode: appState.dashboardFilter,
+      autoRefresh: appState.dashboardAutoRefresh
+    }) + configHtml;
+
+    const refreshBtn = document.getElementById('dash-refresh-btn');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', () => {
+        refreshBtn.disabled = true;
+        refreshBtn.textContent = 'กำลังโหลด...';
+        refreshDashboardContent();
+      });
+    }
+
+    const autoChk = document.getElementById('dash-auto-refresh');
+    if (autoChk) {
+      autoChk.addEventListener('change', () => {
+        appState.dashboardAutoRefresh = autoChk.checked;
+        scheduleDashboardAutoRefresh();
+      });
+    }
+
+    container.querySelectorAll('[data-dash-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        appState.dashboardFilter = btn.getAttribute('data-dash-filter');
+        renderDashboardBody();
+      });
+    });
+
+    const saveUrlBtn = document.getElementById('dash-save-url-btn');
+    const urlInput = document.getElementById('dash-api-url-input');
+    if (saveUrlBtn && urlInput) {
+      saveUrlBtn.addEventListener('click', () => {
+        try { localStorage.setItem(ST.STORAGE_KEYS.CUSTOM_API_URL, urlInput.value.trim()); } catch (_) {}
+        refreshDashboardContent();
+      });
+    }
+  }
+
+  function scheduleDashboardAutoRefresh() {
+    stopDashboardTimer();
+    if (appState.dashboardAutoRefresh && !modalBackdropEl.classList.contains('hidden')) {
+      appState.dashboardTimer = setInterval(() => {
+        if (!modalBackdropEl.classList.contains('hidden') && document.getElementById('teacher-dash-root')) {
+          refreshDashboardContent();
+        } else {
+          stopDashboardTimer();
+        }
+      }, 15000);
+    }
+  }
+
+  function openTeacherDashboardModal() {
+    openModal({
+      title: '📊 Teacher Analytics Dashboard — สถิติการฝึกและสอบ (Realtime · Read-Only)',
+      dashboard: true,
+      bodyHtml: '<div id="teacher-dash-root"><p style="color:var(--text-muted);">กำลังดึงข้อมูลสถิติ...</p></div>',
+      buttons: [
+        { label: 'ปิด Dashboard', variant: 'btn-primary', onClick: closeModal }
+      ],
+      onClose: () => stopDashboardTimer()
+    });
+    renderDashboardBody();
+    refreshDashboardContent();
+    scheduleDashboardAutoRefresh();
+  }
+
+  if (teacherKeyBtnEl) {
+    teacherKeyBtnEl.addEventListener('click', () => {
+      if (appState.view === 'REAL_ACTIVE') return;
+      openTeacherPinModal();
+    });
+  }
 
   /* ------------------------------------------------------------------------
      App Boot

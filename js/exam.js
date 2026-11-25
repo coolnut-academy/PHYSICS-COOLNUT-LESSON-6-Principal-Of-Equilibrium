@@ -3,19 +3,20 @@
    Multi-Tab Coordination, Exam State Machine & Export Helpers
    ========================================================================== */
 (function (root, factory) {
-  const api = factory(root.MomentLab && root.MomentLab.Physics);
+  const api = factory(root.__ML_BOOT__ && root.__ML_BOOT__.Physics);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
+  } else {
+    root.__ML_BOOT__ = root.__ML_BOOT__ || {};
+    root.__ML_BOOT__.Exam = api;
   }
-  root.MomentLab = root.MomentLab || {};
-  root.MomentLab.Exam = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (PhysicsArg) {
   'use strict';
 
   function getPhysics() {
     if (PhysicsArg) return PhysicsArg;
-    if (typeof globalThis !== 'undefined' && globalThis.MomentLab && globalThis.MomentLab.Physics) {
-      return globalThis.MomentLab.Physics;
+    if (typeof globalThis !== 'undefined' && globalThis.__ML_BOOT__ && globalThis.__ML_BOOT__.Physics) {
+      return globalThis.__ML_BOOT__.Physics;
     }
     if (typeof require === 'function') {
       return require('./physics.js');
@@ -552,13 +553,17 @@
     const hasTechLimitation = Boolean(session.storageError) || flags.some(f =>
       f.code === 'clock_anomaly' || f.code === 'storage_write_failed' || f.code === 'concurrent_tab' || f.code === 'crypto_fallback'
     );
-    const hasReviewEvents = hiddenCount > 0 || focusOnlyCount > 0 || resumeCount > 0 || fullscreenExitCount > 0;
+    const hasFastSubmit = flags.some(f => f.code === 'fast_submit');
+    const hasReviewEvents = hiddenCount > 0 || focusOnlyCount > 0 || resumeCount > 0 || fullscreenExitCount > 0 || hasFastSubmit;
 
     const statusBadges = [];
     if (!hasReviewEvents) {
       statusBadges.push({ kind: 'clean', label: 'ไม่พบเหตุการณ์ออกจากหน้าที่ระบบบันทึกได้' });
     } else {
       statusBadges.push({ kind: 'review', label: 'พบเหตุการณ์ที่ครูควรตรวจสอบ' });
+    }
+    if (hasFastSubmit) {
+      statusBadges.push({ kind: 'review', label: 'ส่งเร็วผิดปกติ (< 1 นาที)' });
     }
     if (hasTechLimitation) {
       statusBadges.push({ kind: 'tech', label: 'มีข้อจำกัดทางเทคนิคในการบันทึก' });
@@ -569,6 +574,7 @@
       focusOnlyCount,
       resumeCount,
       fullscreenExitCount,
+      hasFastSubmit,
       totalReviewEvents: hiddenCount + focusOnlyCount + resumeCount + fullscreenExitCount,
       awayMs,
       flags,
@@ -629,11 +635,14 @@
       answers[q.id] = { rawValue: '', unit: '' };
     }
 
+    const roomCode = mode === 'real' ? String(setup.roomCode || '').trim().toUpperCase().slice(0, 20) : '';
+
     const session = {
       schemaVersion: P.SCHEMA_VERSION,
       appVersion: P.APP_VERSION,
       sessionId,
       mode,
+      roomCode,
       status: 'active',
       revision: 0,
       student,
@@ -691,6 +700,17 @@
 
     // Close any open incidents at endedAt
     closeOpenIncidentsAt(session, endedAt, delayedTimeout);
+
+    // Flag suspiciously fast real-exam submission (< 60 seconds) for teacher review (no automatic penalty)
+    const elapsedSec = Math.max(0, Math.round((endedAt - session.startedAt) / 1000));
+    if (session.mode === 'real' && elapsedSec < 60) {
+      addTechnicalFlag(
+        session,
+        'fast_submit',
+        `ส่งข้อสอบเร็วกว่า 1 นาที (ใช้เวลา ${elapsedSec} วินาที) — ครูควรตรวจสอบเพิ่มเติม`,
+        finalizedAt
+      );
+    }
 
     // Freeze answers & grade
     const graded = P.gradeExam(session);
@@ -906,6 +926,7 @@
       exportedAtIso: new Date().toISOString(),
       disclaimer: 'ข้อมูลนี้สร้างและบันทึกในเบราว์เซอร์ของอุปกรณ์ผู้สอบ ไม่ใช่ใบรับรองจากเซิร์ฟเวอร์ และสามารถแก้ไขได้ภายนอก ครูผู้สอนควรตรวจสอบเทียบกับเวลาและ Session ID ในคาบสอบจริง',
       sessionId: session.sessionId,
+      roomCode: session.roomCode || '',
       mode: session.mode,
       student: session.student,
       timing: {
@@ -953,6 +974,7 @@
     ];
     if (session.mode === 'real') {
       lines.push(`ผู้สอบ: ${session.student.firstName} ${session.student.lastName} | ชั้น: ${session.student.classroom} | เลขที่: ${session.student.number}`);
+      if (session.roomCode) lines.push(`รหัสคาบสอบ: ${session.roomCode}`);
     } else {
       lines.push(`เลขที่ทดลองสอบ: ${session.student.number}`);
     }
