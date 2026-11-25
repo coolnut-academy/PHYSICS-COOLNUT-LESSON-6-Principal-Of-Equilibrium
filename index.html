@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <title>Moment Lab | สมดุลต่อการหมุน — ฟิสิกส์ ม.4</title>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('momentlab.v1.theme');
+        if (saved === 'light' || saved === 'dark') {
+          document.documentElement.setAttribute('data-theme', saved);
+        }
+      } catch (e) { }
+    })();
+  </script>
+  <!-- Thai Sarabun Typography + KaTeX LaTeX Math (graceful offline fallback built in) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+  <a class="skip-link" href="#main-content">ข้ามไปยังเนื้อหาหลัก</a>
+
+  <!-- Top Application Header -->
+  <header class="app-header" id="app-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <button type="button" class="brand-btn" id="brand-home-btn" aria-label="Moment Lab หน้าหลัก">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="26" height="26" fill="none">
+              <rect x="4" y="13" width="24" height="4" rx="2" fill="currentColor" />
+              <polygon points="16,17 10,27 22,27" fill="var(--accent)" />
+              <circle cx="9" cy="10" r="2.6" fill="var(--sky)" />
+              <circle cx="23" cy="10" r="2.6" fill="var(--amber)" />
+            </svg>
+          </span>
+          <span class="brand-text">
+            <span class="brand-title">Moment Lab</span>
+            <span class="brand-sub">ฟิสิกส์ ม.4 · สมดุลต่อการหมุน</span>
+          </span>
+        </button>
+      </div>
+
+      <div class="header-controls">
+        <span class="mode-pill" id="header-mode-pill" aria-live="off">หน้าหลัก</span>
+        <button type="button" class="icon-btn theme-toggle" id="theme-toggle-btn" aria-label="สลับโหมดสี สว่าง/มืด"
+          title="สลับโหมดสี Dark / Light">
+          <span class="theme-icon-dark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path
+                d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41">
+              </path>
+            </svg>
+          </span>
+          <span class="theme-icon-light" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </span>
+          <span class="theme-label" id="theme-toggle-label">โหมดมืด</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Live Banners Region (Incident Notice / Storage Error / Concurrent Tab) -->
+  <div class="banner-stack" id="banner-stack" aria-live="polite"></div>
+
+  <!-- Screen-reader-only timer milestones (5m, 1m, timeout only) -->
+  <div class="sr-only" id="timer-sr-announce" aria-live="assertive" aria-atomic="true"></div>
+
+  <!-- Main Dynamic Application Container -->
+  <main class="app-main" id="main-content" tabindex="-1"></main>
+
+  <!-- In-Page Modal Dialog Root (Zero alert() / confirm()) -->
+  <div class="modal-backdrop hidden" id="modal-backdrop" role="presentation">
+    <div class="modal-dialog" id="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title"></h2>
+        <button type="button" class="icon-btn modal-close-btn" id="modal-close-btn" aria-label="ปิดหน้าต่าง">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer" id="modal-footer"></div>
+    </div>
+  </div>
+
+  <!-- Print-only Official Footer -->
+  <footer class="print-footer">
+    Moment Lab — สมดุลต่อการหมุน (ฟิสิกส์ ม.4) · แหล่งเวลา: นาฬิกาอุปกรณ์ (ไม่ใช่เวลาจากเซิร์ฟเวอร์)
+  </footer>
+
+  <!-- Core Scripts (Classic order for GitHub Pages + local file:// compatibility) -->
+  <script src="js/physics.js"></script>
+  <script src="js/svg.js"></script>
+  <script src="js/exam.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+
+</html>
