@@ -13,6 +13,7 @@
   const S = boot.Svg;
   const E = boot.Exam;
   const ST = boot.Stats;
+  const CEL = boot.Celebrate;
   try { delete window.__ML_BOOT__; } catch (_) { window.__ML_BOOT__ = undefined; }
   try {
     Object.defineProperty(window, 'MomentLab', {
@@ -74,7 +75,8 @@
     dashboardFilter: 'all',
     dashboardAutoRefresh: true,
     dashboardTimer: null,
-    dashboardLastData: null
+    dashboardLastData: null,
+    celebrateGifIndex: 0
   };
 
   const UNIT_OPTION_LABELS = {
@@ -530,8 +532,19 @@
       appState.resultExpanded = {};
       clearBanners();
 
+      const isPerfect = Boolean(!alreadyFinished && session.result && session.result.scoreHalf === session.result.maxHalf);
+      if (isPerfect && CEL) {
+        appState.celebrateGifIndex = CEL.pickGif().index;
+        CEL.launchConfetti();
+        CEL.playVictorySong();
+      }
+
       if (session.mode === 'real' && !saved.ok) showStorageErrorBanner(saved.error);
       navigate(session.mode === 'real' ? 'REAL_RESULT' : 'PRACTICE_RESULT');
+
+      if (isPerfect && CEL) {
+        openPerfectScoreModal(session);
+      }
     } finally {
       appState.submitting = false;
     }
@@ -591,6 +604,9 @@
      ------------------------------------------------------------------------ */
   function navigate(view) {
     stopLiveClock();
+    if (view !== 'REAL_RESULT' && view !== 'PRACTICE_RESULT' && CEL) {
+      CEL.stopVictorySong();
+    }
     if (view !== 'REAL_ACTIVE' && view !== 'PRACTICE_ACTIVE') {
       stopExamTimers();
     }
@@ -662,14 +678,15 @@
     mainEl.innerHTML = `
       ${realNoticeHtml}
       <section class="card hero-card">
-        <div class="hero-top-row">
-          <div>
-            <span class="badge badge-blue">Future Education · Physics M.4</span>
+        <div class="hero-cat-layout">
+          <img src="assets/cat-hero.jpg" alt="น้องแมวส้มอ้วนใส่แว่นกำลังทดลองสมดุลไม้เมตร" class="hero-cat-avatar" loading="eager">
+          <div class="hero-cat-content">
+            <span class="badge badge-blue">🐱 แมวส้มอ้วนพาติวฟิสิกส์ ม.4 · Future Education</span>
             <h1 class="hero-title">Moment Lab: สมดุลต่อการหมุน</h1>
-            <p class="hero-desc">เรียนรู้หลักโมเมนต์ของแรงจากภาพและโจทย์มาตรฐาน 6 ข้อ ทั้งระยะหน่วยเมตร (${renderLatex('\\text{m}', 'm')}) และเซนติเมตร (${renderLatex('\\text{cm}', 'cm')}) พร้อมเฉลยสมการทีละขั้น ฝึกทดลองสอบสุ่มตัวเลขตามเลขที่ไม่จำกัด และสอบจริงพร้อมหลักฐานตรวจหน้าชั้น</p>
-          </div>
-          <div class="formula-chip" aria-label="สมการหลัก ผลรวมโมเมนต์ทวนเข็มเท่ากับผลรวมโมเมนต์ตามเข็ม">
-            ${renderLatex('\\sum M_{\\text{ทวน}} = \\sum M_{\\text{ตาม}}', 'ΣMทวน = ΣMตาม')}
+            <p class="hero-desc">มาเรียนรู้หลักโมเมนต์ของแรงกับเจ้าแมวส้มอ้วนจากภาพและโจทย์มาตรฐาน 6 ข้อ ทั้งระยะหน่วยเมตร (${renderLatex('\\text{m}', 'm')}) และเซนติเมตร (${renderLatex('\\text{cm}', 'cm')}) พร้อมเฉลยสมการทีละขั้น ฝึกทดลองสอบสุ่มไม่ซ้ำ และสอบจริงพร้อมหลักฐานตรวจหน้าชั้น</p>
+            <div class="formula-chip" style="margin-top:4px;" aria-label="สมการหลัก ผลรวมโมเมนต์ทวนเข็มเท่ากับผลรวมโมเมนต์ตามเข็ม">
+              🐾 ${renderLatex('\\sum M_{\\text{ทวน}} = \\sum M_{\\text{ตาม}}', 'ΣMทวน = ΣMตาม')}
+            </div>
           </div>
         </div>
       </section>
@@ -831,6 +848,13 @@
   function buildLearnTheoryHtml() {
     return `
       <section class="card">
+        <div class="cat-buddy-strip">
+          <img src="assets/cat-study.jpg" alt="น้องแมวส้มอ้วนใส่หมวกเบเรต์พร้อมไม้บรรทัด" class="cat-buddy-thumb" loading="lazy">
+          <div>
+            <strong style="color:var(--accent);font-size:0.98rem;">เมี๊ยว~ ยินดีต้อนรับสู่ห้องเรียนแมวส้มอ้วน! 🐾</strong>
+            <div style="font-size:0.86rem;color:var(--text-secondary);">ค่อย ๆ อ่านนิยาม ลองเล่น Lab เลื่อนจุดหมุน แล้วฝึกทำตัวอย่าง 6 ข้อทีละขั้นกันนะ ถ้าสอบได้เต็ม 10/10 น้องแมวมีท่าเต้นพิเศษรอฉลองอยู่ด้วย!</div>
+          </div>
+        </div>
         <div class="example-head" style="margin-bottom:10px;">
           <span class="badge badge-blue">พื้นฐานฟิสิกส์ ม.4</span>
           <span class="badge badge-neutral">${renderLatex('g = 9.8\\text{ m/s}^2\\; (9.8\\text{ N/kg})', 'g = 9.8 m/s²')}</span>
@@ -1204,6 +1228,7 @@
         t.open = true;
         const q = P.getLearnQuestion(sec, appState.learn.studentNo, distMode);
         t.feedback = P.gradeAnswer(q, { rawValue: t.rawValue, unit: t.unit });
+        if (t.feedback.isCorrect && CEL) CEL.launchConfetti();
         renderLearn();
       });
     }
@@ -2104,6 +2129,37 @@
       </div>
     `;
 
+    const isPerfect = res.scoreHalf === res.maxHalf;
+    const gifInfo = CEL ? CEL.pickGif(appState.celebrateGifIndex) : null;
+    const celebrateBannerHtml = isPerfect && gifInfo ? `
+      <section class="card celebrate-banner no-print" id="perfect-celebrate-card">
+        <span class="badge badge-warn" style="font-size:0.9rem;padding:6px 14px;">🎉 เมี๊ยว!! คะแนนเต็ม 10 / 10 สุดยอดมาก!! 🐾</span>
+        <div class="celebrate-gif-frame">
+          <img
+            id="res-celebrate-gif"
+            class="celebrate-gif-img"
+            src="${esc(gifInfo.url)}"
+            alt="GIF แมวเต้นฉลองคะแนนเต็ม 10 คะแนน"
+            onerror="this.onerror=null;this.src='${esc(CEL.FALLBACK_IMAGE)}';this.classList.add('is-fallback-dance');"
+          >
+        </div>
+        <div id="res-celebrate-caption" style="font-weight:800;font-size:1rem;color:var(--accent);">${esc(gifInfo.caption)}</div>
+        <div class="btn-row" style="justify-content:center;">
+          <button type="button" class="btn btn-primary btn-sm" id="res-replay-celebrate-btn">🎵 เล่นเพลงและโปรยพลุอีกครั้ง</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="res-next-gif-btn">🐱 เปลี่ยน GIF แมวเต้น</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="res-stop-music-btn">🔇 ปิดเสียง</button>
+        </div>
+      </section>
+    ` : `
+      <div class="cat-buddy-strip no-print" style="margin-bottom:0;">
+        <img src="assets/cat-study.jpg" alt="น้องแมวส้มอ้วนให้กำลังใจ" class="cat-buddy-thumb" loading="lazy">
+        <div>
+          <strong style="color:var(--accent);font-size:0.96rem;">${res.scoreHalf >= 14 ? 'เก่งมากเลยเมี๊ยว! อีกนิดเดียวก็เต็ม 10 แล้ว 🐾' : 'ไม่เป็นไรนะเมี๊ยว! ค่อย ๆ ดูเฉลยทีละขั้นแล้วลองฝึกใหม่ได้เสมอ 🐱🧡'}</strong>
+          <div style="font-size:0.85rem;color:var(--text-secondary);">ถ้าสอบได้คะแนนเต็ม 10 / 10 น้องแมวส้มจะออกมาเต้นฉลองพร้อมเสียงเพลงให้ดูเลยนะ!</div>
+        </div>
+      </div>
+    `;
+
     mainEl.innerHTML = `
       <div class="result-shell">
         <section class="card result-hero ${isReal ? 'is-real' : ''}">
@@ -2164,6 +2220,8 @@
           </div>
         </section>
 
+        ${celebrateBannerHtml}
+
         ${integritySectionHtml}
 
         <section>
@@ -2215,6 +2273,78 @@
     if (toLearnBtn) toLearnBtn.addEventListener('click', () => navigate('LEARN'));
     const teacherNewRoundBtn = document.getElementById('teacher-new-round-btn');
     if (teacherNewRoundBtn) teacherNewRoundBtn.addEventListener('click', () => openTeacherNewRoundModal(session));
+
+    const replayCelBtn = document.getElementById('res-replay-celebrate-btn');
+    if (replayCelBtn && CEL) {
+      replayCelBtn.addEventListener('click', () => {
+        CEL.launchConfetti();
+        CEL.playVictorySong();
+      });
+    }
+    const nextGifBtn = document.getElementById('res-next-gif-btn');
+    if (nextGifBtn && CEL) {
+      nextGifBtn.addEventListener('click', () => {
+        appState.celebrateGifIndex = (appState.celebrateGifIndex + 1) % CEL.DANCING_CAT_GIFS.length;
+        const nextG = CEL.pickGif(appState.celebrateGifIndex);
+        const img = document.getElementById('res-celebrate-gif');
+        const cap = document.getElementById('res-celebrate-caption');
+        if (img) {
+          img.classList.remove('is-fallback-dance');
+          img.src = nextG.url;
+        }
+        if (cap) cap.textContent = nextG.caption;
+        CEL.launchConfetti();
+      });
+    }
+    const stopMusicBtn = document.getElementById('res-stop-music-btn');
+    if (stopMusicBtn && CEL) {
+      stopMusicBtn.addEventListener('click', () => CEL.stopVictorySong());
+    }
+  }
+
+  function openPerfectScoreModal(session) {
+    if (!CEL) return;
+    const gifInfo = CEL.pickGif(appState.celebrateGifIndex);
+    openModal({
+      title: '🎉 ยินดีด้วยเมี๊ยว! คะแนนเต็ม 10 / 10!! 🐱✨',
+      bodyHtml: `
+        <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;">
+          <div class="celebrate-gif-frame">
+            <img
+              id="modal-celebrate-gif"
+              class="celebrate-gif-img"
+              src="${esc(gifInfo.url)}"
+              alt="GIF แมวเต้นฉลองคะแนนเต็ม 10 คะแนน"
+              onerror="this.onerror=null;this.src='${esc(CEL.FALLBACK_IMAGE)}';this.classList.add('is-fallback-dance');"
+            >
+          </div>
+          <div style="font-size:1.15rem;font-weight:800;color:var(--accent);">${esc(gifInfo.caption)}</div>
+          <p style="margin:0;color:var(--text-secondary);">
+            ${session.mode === 'real'
+              ? `เก่งสุด ๆ เลย <strong>${esc(session.student.firstName)} ${esc(session.student.lastName)}</strong>! เก็บเต็ม 10 / 10 คะแนนเรียบร้อย กดปิดเพื่อแสดงหน้าผลสอบให้ครูตรวจได้เลยนะ 🐾`
+              : 'ตอบถูกทั้ง 3 ข้อ เต็ม 10 / 10 คะแนน! พร้อมลุยสนามสอบจริงแล้วเมี๊ยว 🐾'}
+          </p>
+        </div>
+      `,
+      buttons: [
+        {
+          label: '🎵 เล่นเพลงอีกครั้ง',
+          variant: 'btn-secondary',
+          onClick: () => {
+            CEL.launchConfetti();
+            CEL.playVictorySong();
+          }
+        },
+        {
+          label: session.mode === 'real' ? 'ดูหน้าผลสอบให้ครูตรวจ 🐾' : 'ดูเฉลยละเอียด 🐾',
+          variant: 'btn-primary',
+          onClick: () => closeModal()
+        }
+      ],
+      onClose: () => {
+        if (CEL) CEL.stopVictorySong();
+      }
+    });
   }
 
   function openTeacherCompactModal(session) {
@@ -2238,7 +2368,7 @@
             <h3 style="margin:6px 0 2px;font-size:1.3rem;">${esc(session.student.firstName)} ${esc(session.student.lastName)}</h3>
             <div style="color:var(--text-secondary);">ชั้น <strong>${esc(session.student.classroom)}</strong> · เลขที่ <strong class="math-font">${session.student.number}</strong></div>
           </div>
-          <div style="text-align:right;padding:12px 18px;border-radius:14px;background:var(--accent-soft);border:1.5px solid rgba(79,140,255,0.4);">
+          <div style="text-align:right;padding:12px 18px;border-radius:14px;background:var(--accent-soft);border:1.5px solid rgba(255,148,66,0.42);">
             <div style="font-size:0.8rem;color:var(--text-secondary);font-weight:700;">คะแนนที่ได้</div>
             <div class="score-big" style="font-size:2.1rem;">${esc(res.scoreDisplay)} / ${esc(res.maxDisplay)}</div>
           </div>

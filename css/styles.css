@@ -1,136 +1,139 @@
 /* ==========================================================================
-   Moment Lab — Cozy White · Black · Blue · Future Education Theme
-   Default: Dark Mode | Toggleable: Light Mode
+   Moment Lab — Cozy Chubby Ginger Cat ("แมวส้มอ้วน") · Future Education Theme
+   Default: Cozy Espresso-Ginger Dark Mode | Toggleable: Warm Cream Light Mode
    Responsive Priority: Mobile Portrait (360–430px) & iPad Landscape (1024px+)
-   Zero External CDN / Font Dependencies
    ========================================================================== */
 
 :root,
 [data-theme="dark"] {
-  /* Core Cozy Dark Palette (Obsidian Black · Soft White · Serene Cobalt Blue) */
-  --bg-canvas: #090d16;
-  --bg-ambient: radial-gradient(ellipse 85% 42% at 50% -8%, rgba(59, 130, 246, 0.16), transparent 72%);
-  --bg-surface: #111827;
-  --bg-surface-elevated: #172135;
-  --bg-surface-inset: #0c121f;
-  --bg-header: rgba(11, 16, 28, 0.88);
-  --border-subtle: rgba(148, 179, 232, 0.15);
-  --border-strong: rgba(148, 179, 232, 0.28);
+  /* Core Cozy Chubby Ginger Cat Dark Palette (Warm Espresso · Cream Milk · Ginger Tangerine) */
+  --bg-canvas: #16110d;
+  --bg-ambient: radial-gradient(ellipse 85% 44% at 50% -8%, rgba(255, 148, 66, 0.2), transparent 72%);
+  --bg-surface: #221a14;
+  --bg-surface-elevated: #2c221a;
+  --bg-surface-inset: #1a140f;
+  --bg-header: rgba(24, 18, 14, 0.9);
+  --border-subtle: rgba(255, 206, 158, 0.16);
+  --border-strong: rgba(255, 188, 126, 0.32);
 
   /* Typography Colors */
-  --text-primary: #f3f6fc;
-  --text-secondary: #aec0da;
-  --text-muted: #7f94b4;
+  --text-primary: #fff8f0;
+  --text-secondary: #e6d1be;
+  --text-muted: #b59a83;
   --text-on-accent: #ffffff;
 
-  /* Signature Blue Accents */
-  --accent: #4f8cff;
-  --accent-solid: #2563eb;
-  --accent-solid-hover: #3b82f6;
-  --accent-soft: rgba(79, 140, 255, 0.14);
-  --accent-ring: rgba(79, 140, 255, 0.45);
-  --sky: #38bdf8;
-  --sky-soft: rgba(56, 189, 248, 0.14);
+  /* Signature Chubby Ginger Cat Accents */
+  --accent: #ff9442;
+  --accent-solid: #e46b1e;
+  --accent-solid-hover: #f57d30;
+  --accent-soft: rgba(255, 148, 66, 0.16);
+  --accent-ring: rgba(255, 148, 66, 0.45);
+  --sky: #67c8ff;
+  --sky-soft: rgba(103, 200, 255, 0.15);
+  --paw-pink: #ff99b8;
+  --paw-pink-soft: rgba(255, 153, 184, 0.16);
 
   /* Semantic Accents (Always paired with icons & Thai text) */
-  --success: #34d399;
-  --success-soft: rgba(52, 211, 153, 0.14);
-  --amber: #fbbf24;
-  --amber-soft: rgba(251, 191, 36, 0.14);
-  --danger: #f87171;
-  --danger-soft: rgba(248, 113, 113, 0.14);
+  --success: #4ade80;
+  --success-soft: rgba(74, 222, 128, 0.15);
+  --amber: #ffd166;
+  --amber-soft: rgba(255, 209, 102, 0.15);
+  --danger: #ff7070;
+  --danger-soft: rgba(255, 112, 112, 0.16);
 
   /* Shadows */
-  --shadow-card: 0 8px 28px rgba(0, 0, 0, 0.34);
-  --shadow-elevated: 0 18px 46px rgba(0, 0, 0, 0.55);
+  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.36);
+  --shadow-elevated: 0 18px 48px rgba(0, 0, 0, 0.58);
 
-  /* SVG Diagram Tokens (Dark) */
-  --svg-bg: #0c1322;
-  --svg-border: rgba(148, 179, 232, 0.2);
-  --svg-pill-bg: #152036;
-  --svg-muted: #7f94b4;
-  --svg-text: #f3f6fc;
-  --svg-text-sub: #a8bbd6;
-  --svg-rod-fill: #24334d;
-  --svg-rod-stroke: #6f94cc;
-  --svg-rod-tick: #8fb1e3;
-  --svg-pivot-fill: rgba(79, 140, 255, 0.22);
-  --svg-pivot-stroke: #60a5fa;
-  --svg-pivot-text: #93c5fd;
-  --svg-force: #60a5fa;
-  --svg-force-soft: rgba(59, 130, 246, 0.18);
-  --svg-mass-fill: #172540;
-  --svg-mass-stroke: #60a5fa;
-  --svg-unknown: #f472b6;
-  --svg-unknown-soft: rgba(244, 114, 182, 0.16);
-  --svg-cm: #c084fc;
-  --svg-cm-soft: rgba(192, 132, 252, 0.15);
-  --svg-ccw: #38bdf8;
-  --svg-cw: #fbbf24;
-  --svg-warn: rgba(251, 191, 36, 0.45);
-  --svg-warn-soft: rgba(251, 191, 36, 0.12);
-  --svg-warn-text: #fde68a;
+  /* SVG Diagram Tokens (Warm Cozy Wooden Beam · Dark) */
+  --svg-bg: #1c1510;
+  --svg-border: rgba(255, 198, 145, 0.22);
+  --svg-pill-bg: #2a2018;
+  --svg-muted: #b59a83;
+  --svg-text: #fff8f0;
+  --svg-text-sub: #e6d1be;
+  --svg-rod-fill: #8d5c34;
+  --svg-rod-stroke: #f3b574;
+  --svg-rod-tick: #ffe0bd;
+  --svg-pivot-fill: rgba(255, 148, 66, 0.24);
+  --svg-pivot-stroke: #ff9442;
+  --svg-pivot-text: #ffbd80;
+  --svg-force: #ff9442;
+  --svg-force-soft: rgba(255, 148, 66, 0.18);
+  --svg-mass-fill: #2f2319;
+  --svg-mass-stroke: #ff9442;
+  --svg-unknown: #ff8fb3;
+  --svg-unknown-soft: rgba(255, 143, 179, 0.18);
+  --svg-cm: #d8a7ff;
+  --svg-cm-soft: rgba(216, 167, 255, 0.16);
+  --svg-ccw: #67c8ff;
+  --svg-cw: #ffd166;
+  --svg-warn: rgba(255, 209, 102, 0.45);
+  --svg-warn-soft: rgba(255, 209, 102, 0.13);
+  --svg-warn-text: #ffe599;
 }
 
 [data-theme="light"] {
-  /* Core Cozy Light Palette (Soft Paper White · Deep Ink Black · Academic Royal Blue) */
-  --bg-canvas: #f5f8fd;
-  --bg-ambient: radial-gradient(ellipse 85% 42% at 50% -10%, rgba(37, 99, 235, 0.08), transparent 72%);
+  /* Core Cozy Chubby Ginger Cat Light Palette (Warm Cream Milk · Cocoa Ink · Ginger Orange) */
+  --bg-canvas: #fff9f2;
+  --bg-ambient: radial-gradient(ellipse 85% 44% at 50% -10%, rgba(255, 148, 66, 0.16), transparent 72%);
   --bg-surface: #ffffff;
-  --bg-surface-elevated: #f8fbff;
-  --bg-surface-inset: #eef3fb;
-  --bg-header: rgba(255, 255, 255, 0.9);
-  --border-subtle: #dce5f2;
-  --border-strong: #bfd0e8;
+  --bg-surface-elevated: #fffcf7;
+  --bg-surface-inset: #fff2e4;
+  --bg-header: rgba(255, 251, 246, 0.92);
+  --border-subtle: #f3dcc4;
+  --border-strong: #e7c099;
 
   /* Typography Colors */
-  --text-primary: #0b1220;
-  --text-secondary: #394a64;
-  --text-muted: #61738f;
+  --text-primary: #2b1b12;
+  --text-secondary: #624634;
+  --text-muted: #8c6d58;
   --text-on-accent: #ffffff;
 
-  /* Signature Blue Accents */
-  --accent: #1d4ed8;
-  --accent-solid: #1d4ed8;
-  --accent-solid-hover: #1e40af;
-  --accent-soft: rgba(29, 78, 216, 0.09);
-  --accent-ring: rgba(37, 99, 235, 0.35);
+  /* Signature Chubby Ginger Cat Accents */
+  --accent: #d85a12;
+  --accent-solid: #df6119;
+  --accent-solid-hover: #c5500e;
+  --accent-soft: rgba(223, 97, 25, 0.11);
+  --accent-ring: rgba(223, 97, 25, 0.35);
   --sky: #0284c7;
-  --sky-soft: rgba(2, 132, 199, 0.1);
+  --sky-soft: rgba(2, 132, 199, 0.11);
+  --paw-pink: #df5487;
+  --paw-pink-soft: rgba(223, 84, 135, 0.11);
 
   /* Semantic Accents */
   --success: #059669;
-  --success-soft: rgba(5, 150, 105, 0.1);
+  --success-soft: rgba(5, 150, 105, 0.11);
   --amber: #b45309;
-  --amber-soft: rgba(217, 119, 6, 0.12);
+  --amber-soft: rgba(217, 119, 6, 0.13);
   --danger: #dc2626;
-  --danger-soft: rgba(220, 38, 38, 0.1);
+  --danger-soft: rgba(220, 38, 38, 0.11);
 
   /* Shadows */
-  --shadow-card: 0 4px 18px rgba(15, 28, 56, 0.06);
-  --shadow-elevated: 0 14px 36px rgba(15, 28, 56, 0.14);
+  --shadow-card: 0 6px 22px rgba(139, 77, 30, 0.08);
+  --shadow-elevated: 0 16px 40px rgba(139, 77, 30, 0.16);
 
-  /* SVG Diagram Tokens (Light) */
-  --svg-bg: #f8fbff;
-  --svg-border: #d5e0f0;
+  /* SVG Diagram Tokens (Warm Cozy Wooden Beam · Light) */
+  --svg-bg: #fffaf3;
+  --svg-border: #efd5ba;
   --svg-pill-bg: #ffffff;
-  --svg-muted: #5b6d8a;
-  --svg-text: #0b1220;
-  --svg-text-sub: #3c4d68;
-  --svg-rod-fill: #dce7f8;
-  --svg-rod-stroke: #1e3a8a;
-  --svg-rod-tick: #3b5998;
-  --svg-pivot-fill: rgba(29, 78, 216, 0.15);
-  --svg-pivot-stroke: #1d4ed8;
-  --svg-pivot-text: #1e3a8a;
-  --svg-force: #1d4ed8;
-  --svg-force-soft: rgba(29, 78, 216, 0.09);
-  --svg-mass-fill: #edf4ff;
-  --svg-mass-stroke: #1d4ed8;
-  --svg-unknown: #be185d;
-  --svg-unknown-soft: rgba(190, 24, 93, 0.09);
+  --svg-muted: #8c6d58;
+  --svg-text: #2b1b12;
+  --svg-text-sub: #624634;
+  --svg-rod-fill: #ecc28d;
+  --svg-rod-stroke: #8c5220;
+  --svg-rod-tick: #7c471b;
+  --svg-pivot-fill: rgba(223, 97, 25, 0.16);
+  --svg-pivot-stroke: #d85a12;
+  --svg-pivot-text: #a54209;
+  --svg-force: #d85a12;
+  --svg-force-soft: rgba(223, 97, 25, 0.11);
+  --svg-mass-fill: #fff1e2;
+  --svg-mass-stroke: #d85a12;
+  --svg-unknown: #cf3476;
+  --svg-unknown-soft: rgba(207, 52, 118, 0.1);
   --svg-cm: #7e22ce;
-  --svg-cm-soft: rgba(126, 34, 206, 0.09);
+  --svg-cm-soft: rgba(126, 34, 206, 0.1);
   --svg-ccw: #0284c7;
   --svg-cw: #b45309;
   --svg-warn: #d97706;
@@ -343,7 +346,7 @@ button {
   font-weight: 700;
   background: var(--accent-soft);
   color: var(--accent);
-  border: 1px solid rgba(79, 140, 255, 0.25);
+  border: 1px solid rgba(255, 148, 66, 0.25);
   white-space: nowrap;
 }
 .mode-pill.is-real {
@@ -420,7 +423,7 @@ button {
 }
 .alert-banner.info {
   background: var(--accent-soft);
-  border-color: rgba(79, 140, 255, 0.35);
+  border-color: rgba(255, 148, 66, 0.35);
 }
 
 .app-main {
@@ -485,7 +488,7 @@ button {
 .badge-blue {
   background: var(--accent-soft);
   color: var(--accent);
-  border-color: rgba(79, 140, 255, 0.25);
+  border-color: rgba(255, 148, 66, 0.25);
 }
 .badge-sky {
   background: var(--sky-soft);
@@ -697,7 +700,7 @@ button {
   padding: 10px 16px;
   border-radius: 14px;
   background: var(--bg-surface-inset);
-  border: 1.5px solid rgba(79, 140, 255, 0.35);
+  border: 1.5px solid rgba(255, 148, 66, 0.35);
   font-weight: 800;
   font-size: 1.05rem;
   color: var(--accent);
@@ -722,7 +725,7 @@ button {
   border-color: var(--accent);
 }
 .mode-card.is-real-card {
-  border-color: rgba(79, 140, 255, 0.32);
+  border-color: rgba(255, 148, 66, 0.32);
 }
 
 .mode-card-head {
@@ -742,7 +745,7 @@ button {
   font-size: 1.35rem;
   background: var(--accent-soft);
   color: var(--accent);
-  border: 1px solid rgba(79, 140, 255, 0.25);
+  border: 1px solid rgba(255, 148, 66, 0.25);
   flex-shrink: 0;
 }
 .mode-icon.sky {
@@ -1054,7 +1057,7 @@ button {
   padding: 12px;
   border-radius: 13px;
   background: var(--accent-soft);
-  border: 1px solid rgba(79, 140, 255, 0.3);
+  border: 1px solid rgba(255, 148, 66, 0.3);
 }
 .personalized-bar input {
   width: 84px;
@@ -1395,10 +1398,10 @@ button {
   width: 100%;
   min-height: 54px;
   padding: 10px 40px 10px 14px;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1.5px solid var(--border-strong);
   background-color: var(--bg-surface-inset);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%234f8cff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23ff9442' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 18px 18px;
@@ -1457,7 +1460,7 @@ button {
   background: linear-gradient(155deg, var(--bg-surface-elevated), var(--bg-surface));
 }
 .result-hero.is-real {
-  border-color: rgba(79, 140, 255, 0.45);
+  border-color: rgba(255, 148, 66, 0.45);
 }
 
 .result-hero-grid {
@@ -1491,7 +1494,7 @@ button {
   padding: 11px 14px;
   border-radius: 13px;
   background: var(--accent-soft);
-  border: 1.5px solid rgba(79, 140, 255, 0.38);
+  border: 1.5px solid rgba(255, 148, 66, 0.38);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1728,6 +1731,129 @@ button {
   width: 100%;
   min-width: 480px;
   height: auto;
+}
+
+/* ==========================================================================
+   Chubby Ginger Cat Mascots & Perfect 10/10 Celebration Styles
+   ========================================================================== */
+.hero-cat-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.hero-cat-avatar {
+  width: 152px;
+  height: 152px;
+  border-radius: 28px;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+  box-shadow: 0 10px 28px rgba(255, 148, 66, 0.28);
+  flex-shrink: 0;
+  background: #fff6eb;
+  animation: catFloat 4.2s ease-in-out infinite;
+}
+.hero-cat-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+@media (min-width: 720px) {
+  .hero-cat-layout {
+    flex-direction: row;
+    text-align: left;
+    align-items: center;
+    gap: 24px;
+  }
+  .hero-cat-avatar {
+    width: 176px;
+    height: 176px;
+  }
+  .hero-cat-content {
+    align-items: flex-start;
+    flex: 1;
+  }
+}
+
+.cat-buddy-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--accent-soft);
+  border: 1.5px solid rgba(255, 148, 66, 0.34);
+  margin-bottom: 14px;
+}
+.cat-buddy-thumb {
+  width: 66px;
+  height: 66px;
+  border-radius: 18px;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+  flex-shrink: 0;
+  background: #fff6eb;
+}
+
+.celebrate-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.celebrate-banner {
+  border: 2px solid var(--amber);
+  background: linear-gradient(145deg, var(--accent-soft), var(--paw-pink-soft), var(--amber-soft));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 20px 16px;
+}
+
+.celebrate-gif-frame {
+  width: min(260px, 82vw);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 3px solid var(--accent);
+  background: var(--bg-surface-inset);
+  box-shadow: 0 12px 32px rgba(255, 148, 66, 0.32);
+  margin: 0 auto;
+}
+.celebrate-gif-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 250px;
+  object-fit: cover;
+}
+.celebrate-gif-img.is-fallback-dance {
+  animation: catPartyDance 0.65s ease-in-out infinite alternate;
+}
+
+@keyframes catFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes catPartyDance {
+  0% { transform: translateY(0) rotate(-4deg) scale(1); }
+  50% { transform: translateY(-8px) rotate(4deg) scale(1.05); }
+  100% { transform: translateY(0) rotate(-3deg) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-cat-avatar,
+  .celebrate-gif-img.is-fallback-dance {
+    animation: none !important;
+  }
 }
 
 .modal-header {
